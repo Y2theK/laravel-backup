@@ -56,6 +56,21 @@ return [
             'throw' => false,
         ],
 
+        'local-backup' => [
+            'driver' => 'local',
+            'root' => storage_path('app/Laravel_DB_Backup'),
+            'throw' => false,
+        ],
+
+        'cloud-backup' => [
+            'driver' => 'google',
+            'clientId' => env('GOOGLE_CLIENT_ID'),
+            'clientSecret' => env('GOOGLE_CLIENT_SECRET'),
+            'refreshToken' => env('GOOGLE_DRIVE_REFRESH_TOKEN'),
+            'folderId' => env('GOOGLE_DRIVE_FOLDER_ID'),
+            'accessToken' => env('GOOGLE_DRIVE_ACCESS_TOKEN'),
+        ],
+
     ],
 
     /*
