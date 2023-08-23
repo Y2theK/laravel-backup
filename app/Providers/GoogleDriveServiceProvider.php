@@ -2,7 +2,8 @@
 
 namespace App\Providers;
 
-use Storage;
+
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\ServiceProvider;
 
 class GoogleDriveServiceProvider extends ServiceProvider
@@ -20,21 +21,28 @@ class GoogleDriveServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        \Storage::extend(
-            'google' , function($app,$config){
-                $client = new \Google_Client();
+        try {
+            Storage::extend('google', function($app, $config) {
+                $options = [];
+
+                if (!empty($config['teamDriveId'] ?? null)) {
+                    $options['teamDriveId'] = $config['teamDriveId'];
+                }
+
+                $client = new \Google\Client();
                 $client->setClientId($config['clientId']);
                 $client->setClientSecret($config['clientSecret']);
                 $client->refreshToken($config['refreshToken']);
+                $client->setAccessToken($config['accessToken']);
+                
+                $service = new \Google\Service\Drive($client);
+                $adapter = new \Masbug\Flysystem\GoogleDriveAdapter($service, $config['folderId'] ?? '/', $options);
+                $driver = new \League\Flysystem\Filesystem($adapter);
 
-                $service = new \Google_Service_Drive($client);
-
-                $adapter = new \Hypweb\Flysystem\GoogleDrive\GoogleDriveAdapter($service, $config['folderId']);
-    
-                $filesystem = new \League\Flysystem\Filesystem($adapter);
-
-                return $filesystem;
-            }
-        );
+                return new \Illuminate\Filesystem\FilesystemAdapter($driver, $adapter);
+            });
+        } catch(\Exception $e) {
+            // your exception handling logic
+        }
     }
 }
